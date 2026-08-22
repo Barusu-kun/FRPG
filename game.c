@@ -16,10 +16,11 @@ Game* game_create(int width, int height, const char* title) {
     game->hauteur_ecran = height;
     game->titre_fenetre = title;
     game->isRunning = true;
+    game->dt = 0;
 
     InitWindow(width, height, title);
     SetTargetFPS(60);
-    game->player = player_create(400.0, 225.0, 4.0f);
+    game->player = player_create(400.0, 225.0, 200.0f);
     game->map = map_create(25,14,32);
 
     if ( game->player == NULL || game->map == NULL) {
@@ -36,7 +37,7 @@ void game_update(Game* game) {
         return; // Handle null pointer
     }
 
-    player_update(game->player);
+    player_update(game->player, game->map, game->dt);
 
     if (WindowShouldClose()) {
         game->isRunning = false;

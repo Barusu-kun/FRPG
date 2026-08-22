@@ -10,6 +10,7 @@ int main(void) {
     }
 
     while (game->isRunning) {
+        game->dt = GetFrameTime();
         game_update(game);
         game_render(game);
     }

@@ -1,7 +1,7 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
-
+#include "map.h"
 #include <stdbool.h>
 #include <raylib.h>
 
@@ -14,7 +14,7 @@ typedef struct {
 
 Player* player_create(float x, float y, float speed);
 
-void player_update(Player* player);
+void player_update(Player* player, const Map* map, float dt);
 
 void player_render(const Player* player);
 

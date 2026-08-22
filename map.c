@@ -1,4 +1,5 @@
 #include "map.h"
+#include "physics.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -28,6 +29,7 @@ Map* map_create(int cols, int rows, int tileSize) {
 
         if(map->tiles[i] == NULL) {
             Erreur_alloc = true;
+            break;
         }
     }
     
@@ -85,7 +87,7 @@ void map_render(const Map* map) {
 }
 
 void map_destroy(Map* map){
-    if (map == NULL){
+    if (map == NULL || map->tiles == NULL){
         return;
     }
 
@@ -93,6 +95,7 @@ void map_destroy(Map* map){
     for (int y = 0; y < map->rows; y++) {
         if (map->tiles[y] != NULL) {
             free(map->tiles[y]);
+            
         }
     }
     free(map->tiles);

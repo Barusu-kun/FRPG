@@ -12,8 +12,10 @@ typedef struct {
     int hauteur_ecran;
     const char* titre_fenetre;
     bool isRunning;
+    float dt;
     Player* player;
     Map* map;
+    
 
 } Game;
 
