@@ -32,10 +32,8 @@ make
 If no Makefile exists, build manually. Example (adjust paths and libraries as needed):
 
 ```bash
-# compile all .c files in src/ into an executable named frpg
-gcc -std=c11 -Wall -Wextra -O2 -Iinclude -o frpg src/*.c
-# if using ncurses or SDL2, add the appropriate flags, e.g.:
-# gcc -std=c11 -Wall -Wextra -O2 -Iinclude -o frpg src/*.c -lncurses
+gcc -Wall -Wextra -Werror -std=c99 main.c game.c player.c map.c physics.c -lraylib -lGL -lm -lpthread -ldl -lrt -lX11 -o game
+
 ```
 
 ## Run
@@ -43,44 +41,17 @@ gcc -std=c11 -Wall -Wextra -O2 -Iinclude -o frpg src/*.c
 After building, run the executable:
 
 ```bash
-./frpg
+./game
 ```
 
-If your executable or run steps are different, update this section accordingly.
 
-## Project layout (common)
+## Project layout
 
-- src/        - C source files
-- include/    - Header files
-- assets/     - Game assets (images, maps, text files)
-- build/      - Build artifacts (ignored in version control)
-- tests/      - Unit or integration tests
-- docs/       - Additional documentation
-
-Adjust these to match the repository's actual layout.
+- ./FRPG ##All in one xd
 
 ## Contributing
 
-Contributions are welcome. Suggested workflow:
-
-1. Fork the repository.
-2. Create a feature branch: `git checkout -b feature/your-feature`
-3. Make changes and add tests where appropriate.
-4. Commit and push: `git commit -am "Add feature" && git push origin feature/your-feature`
-5. Open a pull request describing the change.
-
-Please follow the project's style and add/update tests for new functionality.
-
-## Testing
-
-If tests are provided, run them with the project's test runner or:
-
-```bash
-# if there is a Makefile target
-make test
-```
-
-Otherwise, run any unit test binaries in the tests/ directory.
+Indications are welcome : )
 
 ## License
 
