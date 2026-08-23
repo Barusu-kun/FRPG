@@ -1,57 +1,71 @@
-# FRPG
+🗡️ Zelda-like 2D RPG in C (Raylib)
+Un RPG d'action 2D en C moderne (C99), développé de A à Z sans moteur de jeu. L'objectif principal de ce projet est la maîtrise de l'architecture logicielle, de la gestion manuelle de la mémoire, des pointeurs simples/doubles et des structures de données.
+🎯 Objectifs Pédagogiques
+Gestion Manuelle de la Mémoire : Allocation dynamique (malloc, realloc, free), prévention stricte des fuites mémoire et des dangling pointers.
+Pointeurs & Pointeurs Doubles : Manipulation de matrices 2D dynamiques (Tile**), collections variables d'objets et d'entités (Entity**).
+Structures de Données : Listes chaînées simples (InventoryNode*), machines à états finis.
+Moteur Physique Custom : Collisions AABB axe-par-axe sur grille avec glissement fluide (style Zelda / Hades).
+Architecture Modulaire : Encapsulation stricte, séparation header (.h) / implémentation (.c), principes SOLID en C.
+🛠️ Technologies & Bibliothèques
+Langage : C (Norme C99)
+Bibliothèque Visuelle & Entrées : Raylib (uniquement pour la création de fenêtre, le rendu 2D et les entrées clavier)
+Compilation : gcc / make
+📂 Structure du Projet
+.
+├── main.c              # Point d'entrée du programme
+├── game.h / game.c     # Gestionnaire principal de la boucle de jeu (Gameloop)
+├── player.h / player.c # Entité Joueur, inputs et statistiques
+├── map.h / map.c       # Génération, rendu et gestion de la carte 2D (Tile**)
+├── physics.h / physics.c # Moteur physique (AABB, collisions grille, glissement)
+├── item.h              # Énumération et structures des objets ramassables
+├── inventory.h / .c    # Inventaire dynamique (Liste chaînée simple)
+├── Makefile            # Script d'assemblage et de compilation automatique
+└── README.md           # Documentation du projet
 
-FRPG (Fun Retro RPG) is a small C-based role-playing game project. This repository contains the game's source code, assets, and build scripts. This README explains how to build, run, and contribute to the project.
 
-If this README doesn't match the repository layout or build steps, update the sections below (paths, commands, dependencies) to match your codebase.
+🚀 Avancement du Projet (Missions)
+[x] Mission 1 : Squelette du Jeu, Encapsulation & Gameloop Minimal
+[x] Mission 2 : Entité Joueur & Allocation Dynamique
+[x] Mission 3 : Carte, Tuiles & Allocation 2D Dynamique (Tile**)
+[x] Mission 4 : Moteur Physique & Collisions Axe-par-Axe (Glissement)
+[x] Mission 5 : Inventaire & Liste Chaînée Simple (InventoryNode*)
+[ ] Mission 6 : Gestionnaire d'Entités & Pointeurs Doubles (Entity**)
+[ ] Mission 7 : Hitboxes d'Attaque, Portée d'Épée & Dégâts
+[ ] Mission 8 : PNJs, Dialogues & Machine à États Finis (FSM)
+[ ] Mission 9 : Cartes Multiples, Transitions & Zones
+[ ] Mission 10 : Audit Mémoire (Valgrind / AddressSanitizer) & Polish Visuel
+⚙️ Compilation et Exécution
+Prérequis
+Assure-toi d'avoir installé gcc, make et la bibliothèque Raylib sur ton système.
+Linux (Ubuntu/Debian) :
+sudo apt install build-essential libraylib-dev
 
-## Features
 
-- Turn-based RPG mechanics
-- Character progression and inventory
-- Simple text-based UI (or minimal graphical UI depending on implementation)
-- Designed for learning and experimentation in C
+macOS (Brew) :
+brew install raylib
 
-## Requirements
 
-- A C compiler (GCC or Clang)
-- make (recommended if a Makefile is included)
-- Optional libraries depending on implementation:
-  - ncurses (for terminal UI)
-  - SDL2 (for simple graphics)
-
-Check the source or build scripts for actual dependencies.
-
-## Build
-
-If the repository includes a Makefile, build with:
-
-```bash
+Commandes Makefile
+Compiler le projet :
 make
-```
-
-If no Makefile exists, build manually. Example (adjust paths and libraries as needed):
-
-```bash
-gcc -Wall -Wextra -Werror -std=c99 main.c game.c player.c map.c physics.c -lraylib -lGL -lm -lpthread -ldl -lrt -lX11 -o game
-
-```
-
-## Run
-
-After building, run the executable:
-
-```bash
-./game
-```
 
 
-## Project layout
+Compiler et lancer le jeu :
+make run
 
-- ./FRPG ##All in one xd
 
-## Contributing
+Nettoyer les fichiers objets (.o) :
+make clean
 
-Indications are welcome : )
+
+Nettoyage complet (.o + exécutable) :
+make fclean
+
+
+Recompiler à neuf :
+make re
+
+
 
 ## License
 
