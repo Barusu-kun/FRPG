@@ -31,7 +31,7 @@ Un RPG d'action 2D en C, développé de A à Z sans moteur de jeu, basé sur l'a
 └── README.md           # Cette documentation
 ```
 
-## 📋 Progression
+## Progression
 
 - [x] Squelette du jeu et gameloop
 - [x] Entité joueur et allocation dynamique
@@ -44,7 +44,7 @@ Un RPG d'action 2D en C, développé de A à Z sans moteur de jeu, basé sur l'a
 - [ ] Cartes multiples
 - [ ] Tests mémoire et optimisations
 
-## ⚙️ Installation & Compilation
+## Installation & Compilation
 
 ### Prérequis
 
@@ -68,7 +68,7 @@ make fclean   # Nettoyer tout
 make re       # Recompiler
 ```
 
-## 📄 Licence
+## Licence
 
 Ce projet est sous licence **MIT**. Voir le fichier [LICENSE](LICENSE) pour plus de détails.
 
