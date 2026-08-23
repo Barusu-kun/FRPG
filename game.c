@@ -1,6 +1,8 @@
 #include "game.h"
 #include "player.h"
 #include "map.h"
+#include "inventory.h"
+#include "item.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -21,6 +23,9 @@ Game* game_create(int width, int height, const char* title) {
     InitWindow(width, height, title);
     SetTargetFPS(60);
     game->player = player_create(400.0, 225.0, 200.0f);
+    
+
+    
     game->map = map_create(25,14,32);
 
     if ( game->player == NULL || game->map == NULL) {
@@ -28,7 +33,8 @@ Game* game_create(int width, int height, const char* title) {
         game_destroy(game);
         return NULL;
     }
-    
+    Item placeholder = {1,"Basement key", ITEM_KEY, 0};
+    inventory_add_item(game->player->inventory, placeholder);
     return game;
 }
 
@@ -54,7 +60,9 @@ void game_render(const Game* game) {
     ClearBackground(RAYWHITE);
     DrawText("Hello, World!", 10, 10, 20, DARKGRAY);
     map_render(game->map);
+    inventory_render_debug(game->player->inventory, 10, 50);
     player_render(game->player);
+
     EndDrawing();
     
 }

@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include "player.h"
 #include "physics.h"
+#include "inventory.h"
 #include <raylib.h>
 
 Player* player_create(float x, float y, float speed) {
@@ -18,6 +19,11 @@ Player* player_create(float x, float y, float speed) {
     player->speed = speed;
     player->size = 28.0f;
     player->color = BLUE;
+    player->inventory = inventory_create(10);
+    if (player->inventory == NULL) {
+        free(player);
+        return NULL;
+    }
 
     return player;
 }
@@ -60,6 +66,7 @@ void player_destroy(Player* player) {
     if (player == NULL) {
         return;
     }
+    inventory_destroy(player->inventory);
     free(player);
 }
 

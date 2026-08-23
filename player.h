@@ -2,6 +2,7 @@
 #define PLAYER_H
 
 #include "map.h"
+#include "inventory.h"
 #include <stdbool.h>
 #include <raylib.h>
 
@@ -10,6 +11,7 @@ typedef struct {
     float speed;
     float size;
     Color color;
+    Inventory* inventory;
 } Player;
 
 Player* player_create(float x, float y, float speed);
