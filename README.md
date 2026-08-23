@@ -1,8 +1,8 @@
-# 🗡️ Zelda-like 2D RPG in C
+# Zelda-like 2D RPG in C
 
-Un RPG d'action 2D en C99, développé de A à Z sans moteur de jeu, basé sur l'architecture de jeux comme Zelda et Hades.
+Un RPG d'action 2D en C, développé de A à Z sans moteur de jeu, basé sur l'architecture de jeux comme Zelda et Hades.
 
-## 🎯 Objectifs du Projet
+## Objectifs du Projet
 
 - Gestion manuelle de la mémoire : allocation dynamique, prévention des fuites mémoire
 - Manipulation de pointeurs et structures de données complexes
@@ -10,7 +10,7 @@ Un RPG d'action 2D en C99, développé de A à Z sans moteur de jeu, basé sur l
 - Architecture modulaire et encapsulation stricte
 - Apprentissage des principes de conception logicielle en C
 
-## 🛠️ Technologies
+## Technologies
 
 - **Langage** : C99
 - **Graphisme & Entrées** : Raylib
