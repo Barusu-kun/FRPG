@@ -36,17 +36,24 @@ Game* game_create(int width, int height, const char* title) {
 
     //Item attribution
     Item placeholder = {1,"Basement key", ITEM_KEY, 0};
+    Item placeholder2 = {2,"House key", ITEM_KEY, 0};
+    Item placeholder3 = {3,"Ylenia", ITEM_KEY, 0};
+    Item placeholder4 = {4,"Garage key", ITEM_KEY, 0};
+
     inventory_add_item(game->player->inventory, placeholder);
+    inventory_add_item(game->player->inventory, placeholder2);
+    inventory_add_item(game->player->inventory, placeholder3);
+    inventory_add_item(game->player->inventory, placeholder4);
 
     //Entity attribution
     EntityManager* manager = entity_manager_create(5);
     Vector2 pos_mob1 = {138.0f, 80.0f};
     Vector2 pos_mob2 = {170.0f, 80.0f};
-    Vector2 pos_mob3 = {200.0f, 80.0f};
+    Vector2 pos_mob3 = {400.0f, 80.0f};
 
     Entity* goblin = entity_create(1, ENTITY_MONSTER, pos_mob1, RED);
     Entity* orc = entity_create(2, ENTITY_MONSTER, pos_mob2, RED);
-    Entity* adam = entity_create(3, ENTITY_NPC, pos_mob1, YELLOW);
+    Entity* adam = entity_create(3, ENTITY_NPC, pos_mob3, YELLOW);
 
     entity_manager_add(manager, goblin);
     entity_manager_add(manager, orc);

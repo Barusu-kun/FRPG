@@ -61,7 +61,8 @@ void entity_manager_remove_at(EntityManager* manager, int index) {
 }
 
 void entity_manager_update(EntityManager* manager, const Map* map, float dt) {
-
+    (void)dt;
+    (void)map;
     if (manager == NULL || map == NULL) return;
 
     for (int i = 0; i<manager->count; i++)  {
@@ -69,7 +70,7 @@ void entity_manager_update(EntityManager* manager, const Map* map, float dt) {
         if (manager->entities[i]->active) {
 
             //IMPLEMENTATION IA COMPORTEMENT I GUESS :)
-
+            
         }
 
     }

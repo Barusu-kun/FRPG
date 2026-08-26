@@ -2,6 +2,7 @@
 #define ENTITY_MANAGER_H
 
 #include "entity.h"
+#include "map.h"
 #include <raylib.h>
 #include <stdbool.h>
 
