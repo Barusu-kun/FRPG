@@ -5,6 +5,8 @@
 #include <stdbool.h>
 #include "player.h"
 #include "map.h"
+#include "entity_manager.h"
+#include "entity.h"
 
 
 typedef struct {
@@ -15,6 +17,7 @@ typedef struct {
     float dt;
     Player* player;
     Map* map;
+    EntityManager* entities;
     
 
 } Game;

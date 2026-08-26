@@ -33,8 +33,27 @@ Game* game_create(int width, int height, const char* title) {
         game_destroy(game);
         return NULL;
     }
+
+    //Item attribution
     Item placeholder = {1,"Basement key", ITEM_KEY, 0};
     inventory_add_item(game->player->inventory, placeholder);
+
+    //Entity attribution
+    EntityManager* manager = entity_manager_create(5);
+    Vector2 pos_mob1 = {138.0f, 80.0f};
+    Vector2 pos_mob2 = {170.0f, 80.0f};
+    Vector2 pos_mob3 = {200.0f, 80.0f};
+
+    Entity* goblin = entity_create(1, ENTITY_MONSTER, pos_mob1, RED);
+    Entity* orc = entity_create(2, ENTITY_MONSTER, pos_mob2, RED);
+    Entity* adam = entity_create(3, ENTITY_NPC, pos_mob1, YELLOW);
+
+    entity_manager_add(manager, goblin);
+    entity_manager_add(manager, orc);
+    entity_manager_add(manager, adam);
+
+    game->entities = manager;
+
     return game;
 }
 
@@ -44,6 +63,7 @@ void game_update(Game* game) {
     }
 
     player_update(game->player, game->map, game->dt);
+    entity_manager_update(game->entities, game->map, game->dt);
 
     if (WindowShouldClose()) {
         game->isRunning = false;
@@ -60,6 +80,7 @@ void game_render(const Game* game) {
     ClearBackground(RAYWHITE);
     DrawText("Hello, World!", 10, 10, 20, DARKGRAY);
     map_render(game->map);
+    entity_manager_render(game->entities);
     inventory_render_debug(game->player->inventory, 10, 50);
     player_render(game->player);
 
@@ -71,6 +92,7 @@ void game_destroy(Game* game) {
     if (game == NULL) {
         return; // Handle null pointer
     }
+    entity_manager_destroy(game->entities);
     player_destroy(game->player);
     map_destroy(game->map);
     CloseWindow();
