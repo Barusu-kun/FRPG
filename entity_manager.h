@@ -3,6 +3,7 @@
 
 #include "entity.h"
 #include "map.h"
+#include "player.h"
 #include <raylib.h>
 #include <stdbool.h>
 
@@ -24,5 +25,6 @@ void entity_manager_render(const EntityManager* manager);
 
 void entity_manager_destroy(EntityManager* manager);
 
+void entity_manager_check_attack(EntityManager* manager, SlashHitBox attackBox, int damage);
 
 #endif //ENTITY_MANAGER_H

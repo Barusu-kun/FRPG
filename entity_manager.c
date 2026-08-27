@@ -1,6 +1,8 @@
 #include "entity_manager.h"
 #include "entity.h"
 #include "map.h"
+#include "player.h"
+#include "physics.h"
 #include <raylib.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -103,6 +105,36 @@ void entity_manager_destroy(EntityManager* manager) {
     free(manager);
 }
 
+
+void entity_manager_check_attack(EntityManager* manager, SlashHitBox attackBox, int damage){
+
+    if (manager == NULL) return;
+
+    for (int i = 0; i<manager->count; i++) {
+
+        if (manager->entities[i]->active && manager->entities[i]->type == ENTITY_MONSTER) {
+
+            Rectangle entityBox = { manager->entities[i]->position.x, manager->entities[i]->position.y, manager->entities[i]->size.x, manager->entities[i]->size.y };
+            
+            bool IsHit = false;
+            int j=0;
+
+            while (j<3 && !IsHit) {
+
+                if (CheckCollisionRecs(attackBox.boxes[j], entityBox)) {
+                    IsHit = true;
+                    manager->entities[i]->hp -= damage;
+                    if (manager->entities[i]->hp <=0) {
+                        manager->entities[i]->active = false;
+                    }
+                    
+                }
+                j++;
+            }
+
+        }
+    }
+}
 
 
 

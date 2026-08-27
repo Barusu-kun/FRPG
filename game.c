@@ -71,6 +71,10 @@ void game_update(Game* game) {
 
     player_update(game->player, game->map, game->dt);
     entity_manager_update(game->entities, game->map, game->dt);
+    if (game->player->attackTimer == game->player->attackDuration) {
+        entity_manager_check_attack(game->entities, player_get_attack_box(game->player), 10);
+    }
+
 
     if (WindowShouldClose()) {
         game->isRunning = false;
@@ -90,6 +94,17 @@ void game_render(const Game* game) {
     entity_manager_render(game->entities);
     inventory_render_debug(game->player->inventory, 10, 50);
     player_render(game->player);
+    if (game->player->attackTimer == game->player->attackDuration) {
+        AttaqueTrigo* attaque = malloc(sizeof(AttaqueTrigo));
+        attaque->pivot = game->player->position;
+        attaque->longueur = 20;
+        attaque->largeur = 10;
+        attaque->frameCount = game->dt;
+        attaque->maxFrames = 20;
+        attaque->direction = game->player->direction;
+        DrawAttaqueTrigo(attaque);
+        free(attaque);
+    }
 
     EndDrawing();
     
