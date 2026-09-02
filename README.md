@@ -27,6 +27,8 @@ Un RPG d'action 2D en C, développé de A à Z sans moteur de jeu, basé sur l'a
 ├── physics.h / physics.c # Moteur physique
 ├── item.h              # Objets et structures
 ├── inventory.h / .c    # Inventaire (liste chaînée)
+├── entity.h / .c       # entités
+├── entity_manager.h /.c# gestionnaire d'entités
 ├── Makefile            # Compilation
 └── README.md           # Cette documentation
 ```
@@ -38,8 +40,8 @@ Un RPG d'action 2D en C, développé de A à Z sans moteur de jeu, basé sur l'a
 - [x] Carte 2D avec tuiles
 - [x] Moteur physique et collisions
 - [x] Inventaire avec liste chaînée
-- [ ] Gestionnaire d'entités
-- [ ] Combat et hitboxes
+- [x] Gestionnaire d'entités
+- [x] Combat et hitboxes
 - [ ] PNJs et dialogues
 - [ ] Cartes multiples
 - [ ] Tests mémoire et optimisations
