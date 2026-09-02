@@ -90,37 +90,7 @@ void player_destroy(Player* player) {
     free(player);
 }
 
-//inutile mais joli a voir pour le playtest
 
-void DrawAttaqueTrigo(AttaqueTrigo *att) {
-    // 1. Calcul de la progression (de 0.0 à 1.0)
-    if (att->frameCount > att->maxFrames) att->frameCount = att->maxFrames;
-    float progression = (float)att->frameCount / (float)att->maxFrames;
-
-    // 2. Détermination de l'angle de départ selon la direction (Angles Raylib)
-    float angleDepart = 0.0f;
-    switch (att->direction) {
-        case DIR_RIGHT: angleDepart = 0.0f;   break; // Droite
-        case DIR_DOWN:  angleDepart = 90.0f;  break; // Bas
-        case DIR_LEFT:  angleDepart = 180.0f; break; // Gauche
-        case DIR_UP:    angleDepart = 270.0f; break; // Haut
-    }
-
-    // 3. Calcul de l'angle final
-    // On part de l'angle de direction, et on soustrait pour aller en sens anti-horaire
-    float angleDegres = angleDepart - (progression * 180.0f); 
-
-    // 4. Définition du rectangle de base
-    Rectangle rect = { att->pivot.x, att->pivot.y, att->longueur, att->largeur };
-
-    // 5. Définition du point pivot LOCAL
-    Vector2 origineLocale = { 0.0f, att->largeur / 2.0f };
-
-    // 6. Dessin avec rotation
-    DrawRectanglePro(rect, origineLocale, angleDegres, YELLOW);
-}
-
-//fin du truc inutile
 
 
 SlashHitBox player_get_attack_box(const Player* player) {

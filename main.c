@@ -3,7 +3,7 @@
 
 int main(void) {
 
-    Game* game = game_create(800, 450, "My Game");
+    Game* game = game_create(1920, 1080, "My Game");
     if (game == NULL) {
         printf("Failed to create game\n");
         return 1;
@@ -11,6 +11,7 @@ int main(void) {
 
     while (game->isRunning) {
         game->dt = GetFrameTime();
+        game->FrameCount = GetTime();
         game_update(game);
         game_render(game);
     }

@@ -23,6 +23,12 @@ Entity* entity_create(int id, EntityType type, Vector2 position, Color color) {
     entity->size.x = 28.0f;
     entity->size.y = 28.0f;
     entity->active = true;
+    entity->state = STATE_IDLE;
+    entity->stateTimer = 2.0f;
+    entity->speed = 50.0f;
+    entity->moveDirection.x = 0.0f;
+    entity->moveDirection.y = 0.0f;
+    snprintf(entity->dialogueText, sizeof(entity->dialogueText), "%s", "Placeholder text for Diaogue :) @#~123456/*- `èéù ");
 
     return entity;
 

@@ -27,4 +27,8 @@ void entity_manager_destroy(EntityManager* manager);
 
 void entity_manager_check_attack(EntityManager* manager, SlashHitBox attackBox, int damage);
 
+Entity* entity_manager_get_nearest_npc(EntityManager* manager, Vector2 playerPosition, float interactRadius);
+
+
+
 #endif //ENTITY_MANAGER_H

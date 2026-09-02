@@ -6,6 +6,8 @@
 
 typedef enum {ENTITY_NPC, ENTITY_MONSTER, ENTITY_CHEST} EntityType;
 
+typedef enum {STATE_IDLE, STATE_WANDER, STATE_TALK} EntityState;
+
 typedef struct {
 
     int id;
@@ -15,8 +17,15 @@ typedef struct {
     Color color;
     int hp;
     bool active;
-
+    EntityState state;
+    float stateTimer;
+    Vector2 moveDirection;
+    float speed;
+    char dialogueText[256];
+    
 }Entity;
+
+
 
 Entity* entity_create(int id, EntityType type, Vector2 position, Color color);
 

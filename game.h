@@ -6,7 +6,9 @@
 #include "player.h"
 #include "map.h"
 #include "entity_manager.h"
+#include "dialogue.h"
 #include "entity.h"
+#include <raylib.h>
 
 
 typedef struct {
@@ -15,9 +17,11 @@ typedef struct {
     const char* titre_fenetre;
     bool isRunning;
     float dt;
+    int FrameCount;
     Player* player;
     Map* map;
     EntityManager* entities;
+    DialogueBox* dialogue;
     
 
 } Game;

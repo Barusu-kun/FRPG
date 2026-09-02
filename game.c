@@ -19,6 +19,7 @@ Game* game_create(int width, int height, const char* title) {
     game->titre_fenetre = title;
     game->isRunning = true;
     game->dt = 0;
+    game->FrameCount = 0;
 
     InitWindow(width, height, title);
     SetTargetFPS(60);
@@ -61,6 +62,8 @@ Game* game_create(int width, int height, const char* title) {
 
     game->entities = manager;
 
+    game->dialogue = dialogue_create();
+
     return game;
 }
 
@@ -69,12 +72,29 @@ void game_update(Game* game) {
         return; // Handle null pointer
     }
 
-    player_update(game->player, game->map, game->dt);
-    entity_manager_update(game->entities, game->map, game->dt);
-    if (game->player->attackTimer == game->player->attackDuration) {
-        entity_manager_check_attack(game->entities, player_get_attack_box(game->player), 10);
+   
+    Entity* current_npc = entity_manager_get_nearest_npc(game->entities, game->player->position, 45.0f);
+    if (IsKeyPressed(KEY_F) && !(current_npc == NULL) && !game->dialogue->isActive) {
+
+        current_npc->state = STATE_TALK;
+        dialogue_open(game->dialogue, "NoName", current_npc->dialogueText);
+
+    }
+    else if (IsKeyPressed(KEY_F) && !(current_npc == NULL) && game->dialogue->isActive) {
+        
+        current_npc->state = STATE_IDLE;
+        dialogue_close(game->dialogue);
     }
 
+    if (!game->dialogue->isActive) {
+
+    player_update(game->player, game->map, game->dt);
+
+    }
+    entity_manager_update(game->entities, game->map, game->dt);
+    if (game->player->attackTimer == game->player->attackDuration) {
+            entity_manager_check_attack(game->entities, player_get_attack_box(game->player), 10);
+    }
 
     if (WindowShouldClose()) {
         game->isRunning = false;
@@ -94,17 +114,8 @@ void game_render(const Game* game) {
     entity_manager_render(game->entities);
     inventory_render_debug(game->player->inventory, 10, 50);
     player_render(game->player);
-    if (game->player->attackTimer == game->player->attackDuration) {
-        AttaqueTrigo* attaque = malloc(sizeof(AttaqueTrigo));
-        attaque->pivot = game->player->position;
-        attaque->longueur = 20;
-        attaque->largeur = 10;
-        attaque->frameCount = game->dt;
-        attaque->maxFrames = 20;
-        attaque->direction = game->player->direction;
-        DrawAttaqueTrigo(attaque);
-        free(attaque);
-    }
+    DrawText(TextFormat("%i", game->FrameCount), 1050, 0, 10, DARKGRAY);
+    dialogue_render(game->dialogue, 1920,1080);
 
     EndDrawing();
     
@@ -117,6 +128,7 @@ void game_destroy(Game* game) {
     entity_manager_destroy(game->entities);
     player_destroy(game->player);
     map_destroy(game->map);
+    dialogue_destroy(game->dialogue);
     CloseWindow();
     free(game);
 }
