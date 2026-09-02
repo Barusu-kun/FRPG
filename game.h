@@ -22,8 +22,7 @@ typedef struct {
     Map* map;
     EntityManager* entities;
     DialogueBox* dialogue;
-    
-
+    Camera2D camera;
 } Game;
 
 Game* game_create(int width, int height, const char* title);

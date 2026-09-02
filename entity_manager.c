@@ -78,14 +78,25 @@ void entity_manager_update(EntityManager* manager, const Map* map, float dt) {
 
                         case STATE_WANDER:
                             manager->entities[i]->stateTimer -= dt;
-                            Vector2 vel = Vector2Scale(manager->entities[i]->moveDirection, manager->entities[i]->speed * dt);
-                            physics_move_and_slide(manager->entities[i]->moveDirection, manager->entities[i]->size, vel, map);
+
+                            Vector2 vel = Vector2Scale(
+                                manager->entities[i]->moveDirection,
+                                manager->entities[i]->speed * dt
+                            );
+
+                            manager->entities[i]->position = physics_move_and_slide(
+                                manager->entities[i]->position,
+                                manager->entities[i]->size,
+                                vel,
+                                map
+                            );
 
                             if (manager->entities[i]->stateTimer <= 0.0f) {
                                 manager->entities[i]->state = STATE_IDLE;
-                                manager->entities[i]->stateTimer = (float)(rand() % 3 + 1); 
+                                manager->entities[i]->stateTimer = (float)(rand() % 3 + 1);
                             }
                             break;
+
                         default:
                             break;
                     }

@@ -20,6 +20,7 @@ Game* game_create(int width, int height, const char* title) {
     game->isRunning = true;
     game->dt = 0;
     game->FrameCount = 0;
+    
 
     InitWindow(width, height, title);
     SetTargetFPS(60);
@@ -28,6 +29,11 @@ Game* game_create(int width, int height, const char* title) {
 
     
     game->map = map_create(25,14,32);
+
+    game->camera.target = game->player->position;
+    game->camera.offset = (Vector2){ (float)width / 2.0f, (float)height / 2.0f};
+    game->camera.rotation = 0.0f;
+    game->camera.zoom = 2.0f;
 
     if ( game->player == NULL || game->map == NULL) {
         
@@ -96,6 +102,8 @@ void game_update(Game* game) {
             entity_manager_check_attack(game->entities, player_get_attack_box(game->player), 10);
     }
 
+    game->camera.target = game->player->position;
+
     if (WindowShouldClose()) {
         game->isRunning = false;
     }
@@ -109,13 +117,18 @@ void game_render(const Game* game) {
     }
     BeginDrawing();
     ClearBackground(RAYWHITE);
-    DrawText("Hello, World!", 10, 10, 20, DARKGRAY);
+
+    BeginMode2D(game->camera);
+
     map_render(game->map);
     entity_manager_render(game->entities);
-    inventory_render_debug(game->player->inventory, 10, 50);
     player_render(game->player);
-    DrawText(TextFormat("%i", game->FrameCount), 1050, 0, 10, DARKGRAY);
+
+    EndMode2D();
+
+    inventory_render_debug(game->player->inventory, 10, 50);
     dialogue_render(game->dialogue, 1920,1080);
+    DrawText(TextFormat("%i", game->FrameCount), 1050, 0, 10, DARKGRAY);
 
     EndDrawing();
     
