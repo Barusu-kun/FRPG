@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Éditeur de cartes CSV</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <style>
+    :root {
+      --bg: #14161b;
+      --panel: #1c1f26;
+      --panel-alt: #21252d;
+      --border: #2f3440;
+      --text: #e6e8ec;
+      --text-muted: #8b93a3;
+      --accent: #ffb454;
+      --accent-2: #52d1c0;
+      --danger: #e2637a;
+      --ok: #7bc67e;
+      --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+      --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0;
+      background: var(--bg); color: var(--text);
+      font-family: var(--font-sans);
+    }
+    .app { display: flex; flex-direction: column; min-height: 100vh; }
+    .topbar {
+      display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; justify-content: space-between;
+      padding: 20px 24px; border-bottom: 1px solid var(--border); background: var(--panel);
+    }
+    .title-block h1 { margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.01em; }
+    .title-block p { margin: 4px 0 0; font-size: 13px; color: var(--text-muted); }
+    .topbar-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn {
+      font-family: var(--font-sans); font-size: 13px; font-weight: 500;
+      background: var(--panel-alt); color: var(--text); border: 1px solid var(--border);
+      padding: 8px 14px; border-radius: 6px; cursor: pointer; transition: border-color .15s, background .15s;
+    }
+    .btn:hover { border-color: #454b58; background: #262b34; }
+    .btn:disabled { opacity: .45; cursor: default; }
+    .btn-accent { background: var(--accent); color: #1a1206; border-color: var(--accent); font-weight: 600; }
+    .btn-accent:hover { background: #ffc370; }
+    .btn-small { font-size: 12px; padding: 6px 10px; margin-top: 8px; }
+    .btn-tiny { font-size: 11px; padding: 4px 8px; border-radius: 4px; }
+    .btn-tiny.danger { color: var(--danger); border-color: #4a3038; }
+    .file-btn { display: inline-flex; align-items: center; }
+    .status-bar { padding: 8px 24px; font-size: 13px; font-family: var(--font-mono); border-bottom: 1px solid var(--border); }
+    .status-bar.ok { background: #132018; color: var(--ok); }
+    .status-bar.error { background: #241419; color: var(--danger); }
+    .status-bar.info { background: #141d20; color: var(--accent-2); }
+    .layout { display: grid; grid-template-columns: 260px 1fr 300px; gap: 0; flex: 1; min-height: 0; }
+    @media (max-width: 960px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+    .sidebar { border-right: 1px solid var(--border); padding: 16px; overflow-y: auto; background: var(--panel); }
+    .warps-panel { border-right: none; border-left: 1px solid var(--border); }
+    .panel { margin-bottom: 20px; }
+    .panel h2 { font-size: 12px; text-transform: none; color: var(--text-muted); font-weight: 600; margin: 0 0 10px; }
+    .field-row { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
+    .field-row.inline { flex-direction: row; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .field-row input[type=number] {
+      font-family: var(--font-mono); background: var(--panel-alt); border: 1px solid var(--border);
+      color: var(--text); border-radius: 4px; padding: 6px 8px; width: 100%; font-size: 13px; margin-top: 2px;
+    }
+    #newTileInput { width: 70px; margin-top: 0; }
+    input[type=range] { width: 100%; }
+    .hint { font-size: 12px; color: var(--danger); margin: 8px 0 0; line-height: 1.4; }
+    .hint-muted { color: var(--text-muted); font-size: 11px; margin: 6px 0 4px; line-height: 1.4; }
+    .palette { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+    .swatch {
+      width: 34px; height: 34px; border-radius: 5px; border: 2px solid transparent;
+      font-family: var(--font-mono); font-size: 11px; color: #fff; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; text-shadow: 0 1px 2px rgba(0,0,0,.6);
+    }
+    .swatch.selected { border-color: var(--accent); }
+    .canvas-area {
+      display: flex; gap: 20px; align-items: flex-start; overflow: auto; padding: 20px;
+      background: radial-gradient(circle at 1px 1px, #22262e 1px, transparent 0) 0 0/16px 16px, var(--bg);
+    }
+    .empty-canvas { color: var(--text-muted); font-size: 13px; padding: 20px; }
+    .map-panel {
+      flex: 0 0 auto; border: 1px solid var(--border); border-radius: 8px; background: #1a1d24; padding: 10px;
+    }
+    .map-panel.active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+    .map-panel.target-hint { border-color: var(--accent-2); box-shadow: 0 0 0 1px var(--accent-2); }
+    .map-panel-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+    .map-id-field { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text-muted); }
+    .map-id-field input {
+      width: 46px; font-family: var(--font-mono); background: var(--panel-alt); border: 1px solid var(--border);
+      color: var(--text); border-radius: 4px; padding: 3px 5px; font-size: 12px;
+    }
+    .map-filename {
+      font-size: 12px; color: var(--text); font-family: var(--font-mono); max-width: 150px;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .map-panel .grid-wrap { max-height: 70vh; overflow: auto; }
+    .grid {
+      display: grid; gap: 1px; background: var(--border);
+      user-select: none; -webkit-user-select: none;
+      border: 1px solid var(--border);
+    }
+    .cell {
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-mono); color: rgba(255,255,255,.85); cursor: pointer; position: relative;
+    }
+    .cell.out-of-bounds { outline: 2px solid var(--danger); outline-offset: -2px; z-index: 1; }
+    .cell.has-warp::after {
+      content: ''; position: absolute; width: 38%; height: 38%; border-radius: 50%;
+      background: var(--accent-2); box-shadow: 0 0 0 2px rgba(0,0,0,.4);
+    }
+    .missing-cell {
+      background: repeating-linear-gradient(45deg,#241419,#241419 4px,#2c171e 4px,#2c171e 8px);
+      border: 1px dashed var(--danger);
+    }
+    .warp-header {
+      display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px;
+      font-size: 10px; color: var(--text-muted); margin: 4px 0; padding: 0 5px;
+    }
+    .warps-table { display: flex; flex-direction: column; gap: 6px; }
+    .warp-row {
+      display: flex; flex-direction: column; gap: 5px;
+      background: var(--panel-alt); border: 1px solid var(--border); border-radius: 6px; padding: 6px;
+    }
+    .warp-row.picking { border-color: var(--accent-2); }
+    .warp-inputs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+    .warp-actions { display: flex; gap: 4px; justify-content: flex-end; }
+    .warp-row input {
+      font-family: var(--font-mono); font-size: 11px; background: #181b21; border: 1px solid var(--border);
+      color: var(--text); border-radius: 4px; padding: 4px; width: 100%; min-width: 0; text-align: center;
+    }
+    #rawPreview {
+      width: 100%; height: 160px; font-family: var(--font-mono); font-size: 11px; line-height: 1.5;
+      background: #101215; color: var(--text-muted); border: 1px solid var(--border); border-radius: 6px;
+      padding: 8px; resize: vertical;
+    }
+    .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 11px; color: var(--text-muted); margin-top: 10px; }
+    .legend span { display: inline-flex; align-items: center; gap: 5px; }
+    .legend i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+  </style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="title-block">
+      <h1>Éditeur de cartes CSV</h1>
+      <p>Charger, peindre les tuiles et gérer les warps entre plusieurs maps de jeu</p>
+    </div>
+    <div class="topbar-actions">
+      <label class="btn file-btn">Charger des cartes CSV<input type="file" id="fileInput" accept=".csv,text/csv" multiple hidden></label>
+      <button id="newMapBtn" class="btn">Nouvelle carte vierge</button>
+      <button id="exportBtn" class="btn">Exporter la carte active</button>
+      <button id="exportAllBtn" class="btn btn-accent">Exporter toutes les cartes (.zip)</button>
+    </div>
+  </header>
+  <div id="statusBar" class="status-bar" hidden></div>
+  <main class="layout">
+    <aside class="sidebar">
+      <section class="panel">
+        <h2>Métadonnées déclarées (carte active)</h2>
+        <label class="field-row">Colonnes
+          <input type="number" id="colsInput" min="1">
+        </label>
+        <label class="field-row">Lignes
+          <input type="number" id="rowsInput" min="1">
+        </label>
+        <label class="field-row">Taille de tuile (px)
+          <input type="number" id="tileSizeInput" min="1">
+        </label>
+        <button id="resizeBtn" class="btn btn-small">Appliquer ces dimensions à la grille</button>
+        <p class="hint" id="dimWarning" hidden></p>
+      </section>
+      <section class="panel">
+        <h2>Palette de tuiles (carte active)</h2>
+        <div id="palette" class="palette"></div>
+        <div class="field-row inline">
+          <input type="number" id="newTileInput" placeholder="ID">
+          <button id="addTileBtn" class="btn btn-tiny">+ Ajouter à la palette</button>
+        </div>
+      </section>
+      <section class="panel">
+        <h2>Zoom</h2>
+        <input type="range" id="zoomRange" min="12" max="48" value="26">
+      </section>
+      <div class="legend">
+        <span><i style="background:var(--danger);border:1px solid var(--danger)"></i>hors dimensions déclarées</span>
+        <span><i style="background:var(--accent-2)"></i>warp présent</span>
+        <span><i style="background:transparent;border:1px solid var(--accent)"></i>carte active</span>
+        <span><i style="background:transparent;border:1px solid var(--accent-2)"></i>carte cible probable</span>
+      </div>
+    </aside>
+    <section id="canvasArea" class="canvas-area"></section>
+    <aside class="sidebar warps-panel">
+      <section class="panel">
+        <h2>Warps (tileX, tileY, targetMapID, spawnX, spawnY)</h2>
+        <label class="field-row">ID carte cible (pré-rempli si la carte cible n'est pas encore chargée)
+          <input type="number" id="quickTargetMapID" value="0">
+        </label>
+        <button id="placeWarpBtn" class="btn btn-small">📍 Placer des warps sur la grille</button>
+        <p class="hint-muted">Clic 1 = case de la porte (carte active). Clic 2 = case d'arrivée (n'importe quelle carte). Touche Échap pour annuler.</p>
+        <div class="warp-header">
+          <span>tileX</span><span>tileY</span><span>carte</span><span>spawnX</span><span>spawnY</span>
+        </div>
+        <div id="warpsTable" class="warps-table"></div>
+        <button id="addWarpBtn" class="btn btn-small">+ Ajouter un warp (manuel)</button>
+      </section>
+      <section class="panel">
+        <h2>Aperçu CSV (carte active)</h2>
+        <textarea id="rawPreview" readonly></textarea>
+      </section>
+    </aside>
+  </main>
+</div>
+
+<script>
+const DEFAULT_CSV = `# METADATA
+cols,rows,tileSize
+20,12,32
+# TILE GRID DATA
+1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
+1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
+1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
+1,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,4,0,0,1
+1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
+1,0,0,0,0,0,1,1,3,1,1,0,0,0,0,0,0,0,0,1
+1,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,1
+1,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,1
+1,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,1
+1,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,1
+1,0,0,0,0,0,1,5,5,5,1,0,0,0,0,0,0,0,0,1
+1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
+# WARP DATA
+# tileX,tileY,targetMapID,spawnX,spawnY
+8,10,2,32,160
+9,10,2,32,160
+10,10,2,32,160
+[END]`;
+
+const state = {
+  maps: [],
+  activeIndex: null,
+  selectedTile: 1,
+  paletteExtra: new Set(),
+  cellSize: 26,
+  picking: null,
+  placementMode: null,
+  pendingWarpIndex: null
+};
+
+function activeMap() {
+  return state.activeIndex === null ? null : state.maps[state.activeIndex];
+}
+
+function parseMapCSV(text) {
+  const lines = text.replace(/\r\n/g, '\n').split('\n');
+  let section = null;
+  let cols = 0, rows = 0, tileSize = 32, grid = [], warps = [];
+  for (const raw of lines) {
+    const line = raw.trim();
+    if (line === '') continue;
+    if (line === '[END]') break;
+    if (line.startsWith('#')) {
+      const up = line.toUpperCase();
+      if (up.includes('METADATA')) section = 'metadata';
+      else if (up.includes('TILE GRID')) section = 'grid';
+      else if (up.includes('WARP')) section = 'warp';
+      continue;
+    }
+    if (section === 'metadata') {
+      if (!/^-?\d/.test(line)) continue;
+      const p = line.split(',').map(s => parseInt(s.trim(), 10));
+      cols = p[0] || 0; rows = p[1] || 0; tileSize = p[2] || 32;
+    } else if (section === 'grid') {
+      const p = line.split(',').map(s => { const n = parseInt(s.trim(), 10); return isNaN(n) ? 0 : n; });
+      grid.push(p);
+    } else if (section === 'warp') {
+      const p = line.split(',').map(s => parseInt(s.trim(), 10));
+      warps.push({ tileX: p[0] || 0, tileY: p[1] || 0, targetMapID: p[2] || 0, spawnX: p[3] || 0, spawnY: p[4] || 0 });
+    }
+  }
+  if (grid.length === 0) throw new Error('Section "TILE GRID DATA" introuvable ou vide.');
+  return {
+    cols: cols || grid[0].length,
+    rows: rows || grid.length,
+    tileSize: tileSize || 32,
+    grid, warps
+  };
+}
+
+function serializeMapCSV(map) {
+  const gridLines = map.grid.map(row => row.join(',')).join('\n');
+  const warpLines = map.warps.map(w => [w.tileX, w.tileY, w.targetMapID, w.spawnX, w.spawnY].join(',')).join('\n');
+  return [
+    '# METADATA',
+    'cols,rows,tileSize',
+    `${map.cols},${map.rows},${map.tileSize}`,
+    '',
+    '# TILE GRID DATA',
+    gridLines,
+    '',
+    '# WARP DATA',
+    '# tileX,tileY,targetMapID,spawnX,spawnY',
+    warpLines,
+    '[END]'
+  ].join('\n');
+}
+
+function inferMapId(filename) {
+  const used = new Set(state.maps.map(m => m.id).filter(v => v !== null && v !== undefined && !isNaN(v)));
+  const match = filename && filename.match(/(\d+)/);
+  if (match) {
+    const n = parseInt(match[1], 10);
+    if (!used.has(n)) return n;
+  }
+  let n = 0;
+  while (used.has(n)) n++;
+  return n;
+}
+
+const FIXED_COLORS = { 0: '#1a1d24', 1: '#454b58' };
+function colorForId(id) {
+  if (FIXED_COLORS[id] !== undefined) return FIXED_COLORS[id];
+  const hue = (id * 53 + 40 + 360 * 10) % 360;
+  return `hsl(${hue}, 52%, 40%)`;
+}
+
+function computePaletteIds() {
+  const ids = new Set();
+  const m = activeMap();
+  if (m) m.grid.forEach(row => row.forEach(v => ids.add(v)));
+  state.paletteExtra.forEach(v => ids.add(v));
+  return Array.from(ids).sort((a, b) => a - b);
+}
+
+function showStatus(msg, type) {
+  const el = document.getElementById('statusBar');
+  if (!msg) { el.hidden = true; return; }
+  el.textContent = msg;
+  el.className = 'status-bar' + (type ? ' ' + type : '');
+  el.hidden = false;
+}
+
+function checkAndShowDimensionWarning() {
+  const el = document.getElementById('dimWarning');
+  const m = activeMap();
+  if (!m) { el.hidden = true; return; }
+  const grid = m.grid;
+  const actualRows = grid.length;
+  const actualCols = grid.length ? Math.max(...grid.map(r => r.length)) : 0;
+  const ragged = grid.some(r => r.length !== actualCols);
+  const mismatch = actualRows !== m.rows || actualCols !== m.cols;
+  if (ragged || mismatch) {
+    let msg = '';
+    if (mismatch) msg += `Métadonnées déclarées : ${m.cols}×${m.rows}. Grille réelle : ${actualCols}×${actualRows}. `;
+    if (ragged) msg += `Certaines lignes n'ont pas le même nombre de colonnes. `;
+    msg += 'Cases en trop/manquantes signalées en rouge dans la grille.';
+    el.textContent = msg;
+    el.hidden = false;
+  } else {
+    el.hidden = true;
+  }
+}
+
+function currentRelevantTargetId() {
+  if (state.placementMode === 'spawn') {
+    const qt = parseInt(document.getElementById('quickTargetMapID').value, 10);
+    return isNaN(qt) ? null : qt;
+  }
+  if (state.picking && state.picking.field === 'spawn') {
+    const am = activeMap();
+    const w = am && am.warps[state.picking.idx];
+    return w ? w.targetMapID : null;
+  }
+  return null;
+}
+
+function renderGridInto(gridEl, map, mapIndex) {
+  const cell = state.cellSize;
+  const grid = map.grid;
+  const maxCols = Math.max(...grid.map(r => r.length), map.cols || 0, 1);
+  const totalRows = Math.max(grid.length, map.rows || 0);
+
+  gridEl.style.gridTemplateColumns = `repeat(${maxCols}, ${cell}px)`;
+  gridEl.innerHTML = '';
+  gridEl.dataset.mapIndex = mapIndex;
+
+  const frag = document.createDocumentFragment();
+  for (let y = 0; y < totalRows; y++) {
+    const rowArr = grid[y];
+    for (let x = 0; x < maxCols; x++) {
+      const cellEl = document.createElement('div');
+      cellEl.className = 'cell';
+      cellEl.style.width = cell + 'px';
+      cellEl.style.height = cell + 'px';
+      if (rowArr && x < rowArr.length) {
+        const val = rowArr[x];
+        cellEl.dataset.x = x;
+        cellEl.dataset.y = y;
+        cellEl.dataset.mapIndex = mapIndex;
+        cellEl.style.background = colorForId(val);
+        cellEl.style.fontSize = Math.max(8, Math.floor(cell * 0.42)) + 'px';
+        cellEl.textContent = cell >= 18 ? val : '';
+        if (x >= map.cols || y >= map.rows) cellEl.classList.add('out-of-bounds');
+        if (map.warps.some(w => w.tileX === x && w.tileY === y)) cellEl.classList.add('has-warp');
+      } else {
+        cellEl.classList.add('missing-cell');
+      }
+      frag.appendChild(cellEl);
+    }
+  }
+  gridEl.appendChild(frag);
+}
+
+function renderAllMapPanels() {
+  const area = document.getElementById('canvasArea');
+  area.innerHTML = '';
+  if (state.maps.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'empty-canvas';
+    empty.textContent = 'Aucune carte chargée. Charge un ou plusieurs fichiers CSV, ou crée une carte vierge.';
+    area.appendChild(empty);
+    return;
+  }
+
+  const targetId = currentRelevantTargetId();
+  state.maps.forEach((m, idx) => {
+    const panel = document.createElement('div');
+    panel.className = 'map-panel';
+    if (idx === state.activeIndex) panel.classList.add('active');
+    if (targetId !== null && targetId !== undefined && m.id === targetId) panel.classList.add('target-hint');
+
+    const header = document.createElement('div');
+    header.className = 'map-panel-header';
+
+    const idLabel = document.createElement('label');
+    idLabel.className = 'map-id-field';
+    idLabel.textContent = 'ID';
+
+    const idInput = document.createElement('input');
+    idInput.type = 'number';
+    idInput.value = (m.id === null || m.id === undefined) ? '' : m.id;
+    idInput.title = "Identifiant utilisé pour relier les warps entre cartes";
+    idInput.addEventListener('input', () => {
+      const v = parseInt(idInput.value, 10);
+      m.id = isNaN(v) ? null : v;
+      renderAllMapPanels();
+    });
+    idLabel.appendChild(idInput);
+
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'map-filename';
+    nameSpan.textContent = m.filename;
+    nameSpan.title = m.filename;
+
+    const editBtn = document.createElement('button');
+    editBtn.className = 'btn btn-tiny';
+    editBtn.textContent = idx === state.activeIndex ? 'Active' : 'Éditer';
+    editBtn.disabled = idx === state.activeIndex;
+    editBtn.addEventListener('click', () => setActiveMap(idx));
+
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'btn btn-tiny danger';
+    removeBtn.textContent = '✕';
+    removeBtn.title = 'Retirer cette carte de l\'espace de travail';
+    removeBtn.addEventListener('click', () => removeMap(idx));
+
+    header.appendChild(idLabel);
+    header.appendChild(nameSpan);
+    header.appendChild(editBtn);
+    header.appendChild(removeBtn);
+    panel.appendChild(header);
+
+    const gridWrap = document.createElement('div');
+    gridWrap.className = 'grid-wrap';
+    const gridEl = document.createElement('div');
+    gridEl.className = 'grid';
+    gridWrap.appendChild(gridEl);
+    panel.appendChild(gridWrap);
+    area.appendChild(panel);
+
+    renderGridInto(gridEl, m, idx);
+  });
+}
+
+function renderPalette() {
+  const container = document.getElementById('palette');
+  container.innerHTML = '';
+  computePaletteIds().forEach(id => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'swatch' + (id === state.selectedTile ? ' selected' : '');
+    btn.style.background = colorForId(id);
+    btn.textContent = id;
+    btn.title = `Peindre avec la tuile ${id}`;
+    btn.addEventListener('click', () => { state.selectedTile = id; renderPalette(); });
+    container.appendChild(btn);
+  });
+}
+
+function renderWarpsTable() {
+  const container = document.getElementById('warpsTable');
+  container.innerHTML = '';
+  const m = activeMap();
+  if (!m) return;
+  m.warps.forEach((w, idx) => {
+    const row = document.createElement('div');
+    const isPicking = state.picking && state.picking.idx === idx;
+    row.className = 'warp-row' + (isPicking ? ' picking' : '');
+
+    const inputsDiv = document.createElement('div');
+    inputsDiv.className = 'warp-inputs';
+    ['tileX', 'tileY', 'targetMapID', 'spawnX', 'spawnY'].forEach(field => {
+      const inp = document.createElement('input');
+      inp.type = 'number';
+      inp.dataset.field = field;
+      inp.value = w[field];
+      inp.title = field;
+      inp.addEventListener('input', () => {
+        m.warps[idx][field] = parseInt(inp.value, 10) || 0;
+        renderAllMapPanels(); updatePreview();
+      });
+      inputsDiv.appendChild(inp);
+    });
+    row.appendChild(inputsDiv);
+
+    const actionsDiv = document.createElement('div');
+    actionsDiv.className = 'warp-actions';
+
+    const pickDoorBtn = document.createElement('button');
+    pickDoorBtn.className = 'btn btn-tiny';
+    pickDoorBtn.textContent = '🎯 Porte';
+    pickDoorBtn.title = 'Cliquez une case de la carte active pour définir tileX/tileY';
+    pickDoorBtn.addEventListener('click', () => {
+      const active = isPicking && state.picking.field === 'door';
+      state.placementMode = null; state.pendingWarpIndex = null;
+      state.picking = active ? null : { idx, field: 'door' };
+      showStatus(state.picking ? 'Cliquez la case de la porte, sur la carte active (Échap pour annuler).' : '', state.picking ? 'info' : null);
+      renderWarpsTable(); renderAllMapPanels();
+    });
+    actionsDiv.appendChild(pickDoorBtn);
+
+    const pickSpawnBtn = document.createElement('button');
+    pickSpawnBtn.className = 'btn btn-tiny';
+    pickSpawnBtn.textContent = '🎯 Arrivée';
+    pickSpawnBtn.title = "Cliquez une case sur n'importe quelle carte chargée pour définir spawnX/spawnY";
+    pickSpawnBtn.addEventListener('click', () => {
+      const active = isPicking && state.picking.field === 'spawn';
+      state.placementMode = null; state.pendingWarpIndex = null;
+      state.picking = active ? null : { idx, field: 'spawn' };
+      showStatus(state.picking ? "Cliquez la case d'arrivée, sur la carte cible affichée à côté (Échap pour annuler)." : '', state.picking ? 'info' : null);
+      renderWarpsTable(); renderAllMapPanels();
+    });
+    actionsDiv.appendChild(pickSpawnBtn);
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'btn btn-tiny danger';
+    delBtn.textContent = '✕';
+    delBtn.addEventListener('click', () => {
+      m.warps.splice(idx, 1);
+      if (state.picking && state.picking.idx === idx) state.picking = null;
+      renderWarpsTable(); renderAllMapPanels(); updatePreview();
+    });
+    actionsDiv.appendChild(delBtn);
+    row.appendChild(actionsDiv);
+    container.appendChild(row);
+  });
+}
+
+function updatePreview() {
+  const m = activeMap();
+  document.getElementById('rawPreview').value = m ? serializeMapCSV(m) : '';
+  checkAndShowDimensionWarning();
+}
+
+function syncMetaFieldsFromActive() {
+  const m = activeMap();
+  const disabled = !m;
+  ['colsInput', 'rowsInput', 'tileSizeInput', 'resizeBtn', 'addTileBtn', 'newTileInput', 'addWarpBtn', 'placeWarpBtn', 'quickTargetMapID', 'exportBtn'].forEach(id => {
+    document.getElementById(id).disabled = disabled;
+  });
+  if (m) {
+    document.getElementById('colsInput').value = m.cols;
+    document.getElementById('rowsInput').value = m.rows;
+    document.getElementById('tileSizeInput').value = m.tileSize;
+  }
+}
+
+function fullRender() {
+  renderAllMapPanels();
+  syncMetaFieldsFromActive();
+  renderPalette();
+  renderWarpsTable();
+  updatePreview();
+  const btn = document.getElementById('placeWarpBtn');
+  btn.textContent = state.placementMode ? 'Terminer le placement' : '📍 Placer des warps sur la grille';
+}
+
+function resizeGrid(newCols, newRows) {
+  const m = activeMap();
+  if (!m) return;
+  const grid = m.grid;
+  while (grid.length < newRows) grid.push(new Array(newCols).fill(0));
+  if (grid.length > newRows) grid.length = newRows;
+  for (let i = 0; i < grid.length; i++) {
+    const row = grid[i];
+    while (row.length < newCols) row.push(0);
+    if (row.length > newCols) row.length = newCols;
+  }
+  m.cols = newCols;
+  m.rows = newRows;
+}
+
+function setActiveMap(idx) {
+  state.activeIndex = idx;
+  state.picking = null;
+  state.placementMode = null;
+  state.pendingWarpIndex = null;
+  fullRender();
+}
+
+function removeMap(idx) {
+  state.maps.splice(idx, 1);
+  if (state.maps.length === 0) state.activeIndex = null;
+  else if (state.activeIndex === idx) state.activeIndex = 0;
+  else if (state.activeIndex > idx) state.activeIndex -= 1;
+  state.picking = null; state.placementMode = null; state.pendingWarpIndex = null;
+  fullRender();
+}
+
+function paintSingleCell(cellEl, map, x, y, val) {
+  map.grid[y][x] = val;
+  cellEl.style.background = colorForId(val);
+  cellEl.textContent = state.cellSize >= 18 ? val : '';
+}
+
+function applyCellAction(cellEl, isDrag = false) {
+  if (cellEl.dataset.x === undefined) return;
+  const mapIdx = +cellEl.dataset.mapIndex;
+  const x = +cellEl.dataset.x, y = +cellEl.dataset.y;
+  const clickedMap = state.maps[mapIdx];
+  if (!clickedMap) return;
+
+  if (state.placementMode || state.picking) {
+    if (isDrag) return;
+  }
+
+  if (state.placementMode === 'door') {
+    if (mapIdx !== state.activeIndex) {
+      showStatus('Place la porte sur la carte active (bordée en orange).', 'error');
+      return;
+    }
+    const targetMapID = parseInt(document.getElementById('quickTargetMapID').value, 10) || 0;
+    clickedMap.warps.push({ tileX: x, tileY: y, targetMapID, spawnX: 0, spawnY: 0 });
+    state.placementMode = 'spawn';
+    state.pendingWarpIndex = clickedMap.warps.length - 1;
+    showStatus("Porte placée. Cliquez la case d'arrivée sur la carte cible.", 'info');
+    renderWarpsTable(); renderAllMapPanels(); updatePreview();
+    return;
+  }
+
+  if (state.placementMode === 'spawn') {
+    const am = activeMap();
+    const w = am.warps[state.pendingWarpIndex];
+    w.spawnX = x * (clickedMap.tileSize || 1);
+    w.spawnY = y * (clickedMap.tileSize || 1);
+    if (clickedMap.id !== null && clickedMap.id !== undefined && !isNaN(clickedMap.id)) w.targetMapID = clickedMap.id;
+    state.placementMode = 'door';
+    state.pendingWarpIndex = null;
+    showStatus('Warp configuré. Cliquez la prochaine porte sur la carte active, ou "Terminer le placement".', 'ok');
+    renderWarpsTable(); renderAllMapPanels(); updatePreview();
+    return;
+  }
+
+  if (state.picking) {
+    const am = activeMap();
+    const w = am.warps[state.picking.idx];
+    if (state.picking.field === 'door') {
+      if (mapIdx !== state.activeIndex) {
+        showStatus('La porte doit être placée sur la carte active.', 'error');
+        return;
+      }
+      w.tileX = x; w.tileY = y;
+    } else {
+      w.spawnX = x * (clickedMap.tileSize || 1);
+      w.spawnY = y * (clickedMap.tileSize || 1);
+      if (clickedMap.id !== null && clickedMap.id !== undefined && !isNaN(clickedMap.id)) w.targetMapID = clickedMap.id;
+    }
+    state.picking = null;
+    showStatus('', null);
+    renderWarpsTable(); renderAllMapPanels(); updatePreview();
+    return;
+  }
+
+  if (mapIdx !== state.activeIndex) return;
+  paintSingleCell(cellEl, clickedMap, x, y, state.selectedTile);
+  if (!isDrag) {
+    renderPalette();
+    updatePreview();
+  }
+}
+
+function readFileAsText(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = ev => resolve(ev.target.result);
+    reader.onerror = () => reject(new Error('Lecture impossible'));
+    reader.readAsText(file);
+  });
+}
+
+function addMapFromParsed(parsed, filename) {
+  const id = inferMapId(filename);
+  state.maps.push({ id, filename, cols: parsed.cols, rows: parsed.rows, tileSize: parsed.tileSize, grid: parsed.grid, warps: parsed.warps || [] });
+}
+
+document.getElementById('fileInput').addEventListener('change', async e => {
+  const files = Array.from(e.target.files || []);
+  if (files.length === 0) return;
+  const wasEmpty = state.maps.length === 0;
+  let loadedCount = 0;
+  const errors = [];
+  for (const file of files) {
+    try {
+      const text = await readFileAsText(file);
+      const parsed = parseMapCSV(text);
+      addMapFromParsed(parsed, file.name);
+      loadedCount++;
+    } catch (err) {
+      errors.push(`${file.name} : ${err.message}`);
+    }
+  }
+  if ((wasEmpty || state.activeIndex === null) && state.maps.length > 0) state.activeIndex = wasEmpty ? 0 : state.activeIndex;
+  if (state.activeIndex === null && state.maps.length > 0) state.activeIndex = 0;
+  fullRender();
+  if (errors.length) showStatus(`${loadedCount} carte(s) chargée(s). ${errors.join(' — ')}`, loadedCount > 0 ? 'info' : 'error');
+  else showStatus(`${loadedCount} carte(s) chargée(s).`, 'ok');
+  e.target.value = '';
+});
+
+document.getElementById('newMapBtn').addEventListener('click', () => {
+  const cols = 20, rows = 12, tileSize = 32;
+  const grid = Array.from({ length: rows }, (_, y) =>
+    Array.from({ length: cols }, (_, x) => (x === 0 || y === 0 || x === cols - 1 || y === rows - 1) ? 1 : 0)
+  );
+  const id = inferMapId('');
+  const filename = `carte-${id}.csv`;
+  state.maps.push({ id, filename, cols, rows, tileSize, grid, warps: [] });
+  state.activeIndex = state.maps.length - 1;
+  fullRender();
+  showStatus(`Nouvelle carte "${filename}" créée.`, 'ok');
+});
+
+document.getElementById('exportBtn').addEventListener('click', () => {
+  const m = activeMap();
+  if (!m) return;
+  const text = serializeMapCSV(m);
+  const blob = new Blob([text], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = m.filename ? m.filename.replace(/\.csv$/i, '') + '.csv' : 'map.csv';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+  showStatus(`"${a.download}" exporté.`, 'ok');
+});
+
+document.getElementById('exportAllBtn').addEventListener('click', async () => {
+  if (state.maps.length === 0) { showStatus('Aucune carte à exporter.', 'error'); return; }
+  if (typeof JSZip === 'undefined') {
+    showStatus("La bibliothèque JSZip n'est pas disponible hors ligne.", 'error');
+    return;
+  }
+  const zip = new JSZip();
+  const usedNames = new Set();
+  state.maps.forEach(m => {
+    let name = (m.filename && m.filename.trim()) || `map-${m.id}.csv`;
+    if (!/\.csv$/i.test(name)) name += '.csv';
+    while (usedNames.has(name)) name = name.replace(/\.csv$/i, '-2.csv');
+    usedNames.add(name);
+    zip.file(name, serializeMapCSV(m));
+  });
+  const blob = await zip.generateAsync({ type: 'blob' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'maps-export.zip';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+  showStatus(`${state.maps.length} carte(s) exportée(s) dans maps-export.zip.`, 'ok');
+});
+
+document.getElementById('colsInput').addEventListener('input', e => {
+  const m = activeMap(); if (!m) return;
+  m.cols = parseInt(e.target.value, 10) || 0;
+  renderAllMapPanels(); updatePreview();
+});
+
+document.getElementById('rowsInput').addEventListener('input', e => {
+  const m = activeMap(); if (!m) return;
+  m.rows = parseInt(e.target.value, 10) || 0;
+  renderAllMapPanels(); updatePreview();
+});
+
+document.getElementById('tileSizeInput').addEventListener('input', e => {
+  const m = activeMap(); if (!m) return;
+  m.tileSize = parseInt(e.target.value, 10) || 0;
+  updatePreview();
+});
+
+document.getElementById('resizeBtn').addEventListener('click', () => {
+  const newCols = Math.max(1, parseInt(document.getElementById('colsInput').value, 10) || 1);
+  const newRows = Math.max(1, parseInt(document.getElementById('rowsInput').value, 10) || 1);
+  resizeGrid(newCols, newRows);
+  fullRender();
+  showStatus(`Grille redimensionnée à ${newCols}×${newRows}.`, 'ok');
+});
+
+document.getElementById('addTileBtn').addEventListener('click', () => {
+  const val = parseInt(document.getElementById('newTileInput').value, 10);
+  if (!isNaN(val)) {
+    state.paletteExtra.add(val);
+    state.selectedTile = val;
+    document.getElementById('newTileInput').value = '';
+    renderPalette();
+  }
+});
+
+document.getElementById('addWarpBtn').addEventListener('click', () => {
+  const m = activeMap(); if (!m) return;
+  m.warps.push({ tileX: 0, tileY: 0, targetMapID: 0, spawnX: 0, spawnY: 0 });
+  renderWarpsTable(); renderAllMapPanels(); updatePreview();
+});
+
+document.getElementById('placeWarpBtn').addEventListener('click', () => {
+  if (!activeMap()) return;
+  const btn = document.getElementById('placeWarpBtn');
+  if (state.placementMode) {
+    state.placementMode = null;
+    state.pendingWarpIndex = null;
+    btn.textContent = '📍 Placer des warps sur la grille';
+    showStatus('', null);
+  } else {
+    state.picking = null;
+    state.placementMode = 'door';
+    btn.textContent = 'Terminer le placement';
+    showStatus('Cliquez sur la case de la porte, sur la carte active (Échap pour annuler).', 'info');
+  }
+  renderWarpsTable();
+  renderAllMapPanels();
+});
+
+document.getElementById('zoomRange').addEventListener('input', e => {
+  state.cellSize = parseInt(e.target.value, 10);
+  renderAllMapPanels();
+});
+
+let isPainting = false;
+const canvasArea = document.getElementById('canvasArea');
+
+canvasArea.addEventListener('contextmenu', e => {
+  const t = e.target.closest('.cell');
+  if (t && t.dataset.x !== undefined) {
+    e.preventDefault();
+    const mapIdx = +t.dataset.mapIndex;
+    const x = +t.dataset.x, y = +t.dataset.y;
+    const tileVal = state.maps[mapIdx].grid[y][x];
+    state.selectedTile = tileVal;
+    renderPalette();
+    showStatus(`Pipette : tuile sélectionnée = ${tileVal}`, 'info');
+  }
+});
+
+canvasArea.addEventListener('mousedown', e => {
+  if (e.button !== 0) return;
+  const t = e.target.closest('.cell');
+  if (!t) return;
+  isPainting = true;
+  applyCellAction(t, false);
+});
+
+canvasArea.addEventListener('mouseover', e => {
+  if (!isPainting) return;
+  const t = e.target.closest('.cell');
+  if (t) applyCellAction(t, true);
+});
+
+window.addEventListener('mouseup', () => {
+  if (isPainting) {
+    isPainting = false;
+    renderPalette();
+    updatePreview();
+  }
+});
+
+canvasArea.addEventListener('touchstart', e => {
+  const touch = e.touches[0];
+  const el = document.elementFromPoint(touch.clientX, touch.clientY);
+  const t = el && el.closest('.cell');
+  if (t) {
+    isPainting = true;
+    applyCellAction(t, false);
+  }
+}, { passive: true });
+
+canvasArea.addEventListener('touchmove', e => {
+  if (!isPainting) return;
+  const touch = e.touches[0];
+  const el = document.elementFromPoint(touch.clientX, touch.clientY);
+  const t = el && el.closest('.cell');
+  if (t) applyCellAction(t, true);
+}, { passive: true });
+
+window.addEventListener('touchend', () => {
+  if (isPainting) {
+    isPainting = false;
+    renderPalette();
+    updatePreview();
+  }
+});
+
+window.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    if (state.placementMode || state.picking) {
+      state.placementMode = null;
+      state.picking = null;
+      state.pendingWarpIndex = null;
+      document.getElementById('placeWarpBtn').textContent = '📍 Placer des warps sur la grille';
+      showStatus('Opération annulée.', null);
+      renderWarpsTable();
+      renderAllMapPanels();
+    }
+  }
+});
+
+try {
+  const parsed = parseMapCSV(DEFAULT_CSV);
+  addMapFromParsed(parsed, '1.csv');
+  state.activeIndex = 0;
+  fullRender();
+  showStatus('Carte "1.csv" chargée. Prête à l\'édition.', 'ok');
+} catch (err) {
+  fullRender();
+}
+</script>
+</body>
+</html>

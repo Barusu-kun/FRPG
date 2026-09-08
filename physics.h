@@ -12,7 +12,7 @@ bool physics_check_collision(Rectangle rect, const Map* map);
 
 Vector2 physics_move_and_slide(Vector2 position, Vector2 size, Vector2 velocity, const Map* map);
 
-
+WarpData* physics_check_warp(Rectangle rect, const Map* map);
 
 
 

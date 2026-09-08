@@ -59,3 +59,27 @@ Vector2 physics_move_and_slide(Vector2 position, Vector2 size, Vector2 velocity,
     
     return newPos;
 }
+
+WarpData* physics_check_warp(Rectangle rect, const Map* map) {
+    if (map == NULL || map->tiles == NULL) return NULL;
+
+    
+    int minCol = floor(rect.x / map->tileSize);
+    int maxCol = floor((rect.x + rect.width - 1) / map->tileSize);
+    int minRow = floor(rect.y / map->tileSize);
+    int maxRow = floor((rect.y + rect.height - 1) / map->tileSize);
+
+    for (int r = minRow; r <= maxRow; r++) {
+        for (int c = minCol; c <= maxCol; c++) {
+            if (c >= 0 && c < map->cols && r >= 0 && r < map->rows) {
+
+                TraceLog(LOG_DEBUG, "Joueur sur la tuile (%d, %d) de type %d", c, r, map->tiles[r][c].type);
+                
+                if (map->tiles[r][c].warp != NULL) {
+                    return map->tiles[r][c].warp;
+                }
+            }
+        }
+    }
+    return NULL;
+}

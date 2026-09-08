@@ -2,16 +2,26 @@
 #define MAP_H
 
 #include <stdbool.h>
+#include <stdio.h>
 #include <raylib.h>
 
 typedef enum {
-    TILE_GRASS, TILE_WALL, TILE_POT, TILE_DOOR, TILE_FURNITURE
+    TILE_GRASS, TILE_WALL, TILE_COLLECTIBLE, TILE_LAVA, TILE_WARP, TILE_FURNITURE, TILE_EMPTY
 } TileType;
+
+typedef struct {
+
+    int target_map_id;
+    Vector2 spawn_position;
+    int player_direction;
+} WarpData;
 
 typedef struct {
     TileType type;
     bool isSolid;
+    WarpData* warp;
 } Tile;
+
 
 typedef struct Map {
     int cols;
@@ -21,6 +31,8 @@ typedef struct Map {
 }Map;
 
 Map* map_create(int cols, int rows, int tileSize);
+
+Map* map_import(const char* filepath);
 
 void map_render(const Map* map);
 

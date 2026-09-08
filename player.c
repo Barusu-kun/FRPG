@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 #include "player.h"
 #include "physics.h"
 #include "inventory.h"
@@ -32,7 +33,7 @@ Player* player_create(float x, float y, float speed) {
     return player;
 }
 
-void player_update(Player* player, const Map* map, float dt) {
+void player_update(Player* player, const Map* map, float dt, int* current_map_ID) {
     if (player == NULL){
         return; //Handle exception
     }
@@ -49,6 +50,9 @@ void player_update(Player* player, const Map* map, float dt) {
         player->attackTimer = player->attackDuration;
         
     }
+    
+    Vector2 size = { player->size, player->size };
+
     Vector2 velocity = {0.0f, 0.0f};
 
     if (IsKeyDown(KEY_RIGHT)) {
@@ -68,8 +72,27 @@ void player_update(Player* player, const Map* map, float dt) {
         velocity.y += player->speed * dt;
     }
 
-    Vector2 size = { player->size, player->size };
+    
+    
     player->position = physics_move_and_slide(player->position, size, velocity, map);
+
+    Rectangle playerRect = { player->position.x, player->position.y, size.x, size.y };
+
+    
+    WarpData* activeWarp = physics_check_warp(playerRect, map);
+
+    if (activeWarp != NULL) {
+
+        if (activeWarp->target_map_id != *(current_map_ID)){
+
+        player->position = activeWarp->spawn_position;
+
+        *current_map_ID = activeWarp->target_map_id;
+        return;
+        }
+        
+        
+    }
 
 }
 

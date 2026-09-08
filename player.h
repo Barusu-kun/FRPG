@@ -34,7 +34,7 @@ typedef struct {
 
 Player* player_create(float x, float y, float speed);
 
-void player_update(Player* player, const Map* map, float dt);
+void player_update(Player* player, const Map* map, float dt, int* current_map_ID);
 
 void player_render(const Player* player);
 
