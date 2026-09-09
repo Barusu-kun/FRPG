@@ -1,4 +1,4 @@
-# Zelda-like 2D RPG in C
+#  2D RPG in C
 
 Un RPG d'action 2D en C, développé de A à Z sans moteur de jeu, basé sur l'architecture de jeux comme Zelda et Hades.
 
@@ -12,7 +12,7 @@ Un RPG d'action 2D en C, développé de A à Z sans moteur de jeu, basé sur l'a
 
 ## Technologies
 
-- **Langage** : C99
+- **Langage** : C
 - **Graphisme & Entrées** : Raylib
 - **Compilation** : gcc / make
 
@@ -29,8 +29,12 @@ Un RPG d'action 2D en C, développé de A à Z sans moteur de jeu, basé sur l'a
 ├── inventory.h / .c    # Inventaire (liste chaînée)
 ├── entity.h / .c       # entités
 ├── entity_manager.h /.c# gestionnaire d'entités
+├── dialogue.h /.c      # systeme de dialogue
+├── editeur_carte.html  # outil vibe-codé pour editer des maps rapidement dans mon format et en .csv
+├── LICENSE             # License open-source du MIT
 ├── Makefile            # Compilation
-└── README.md           # Cette documentation
+├── README.md           # Cette documentation
+└──assets/map/x.csv    # fichiers map en .csv
 ```
 
 ## Progression
@@ -41,10 +45,13 @@ Un RPG d'action 2D en C, développé de A à Z sans moteur de jeu, basé sur l'a
 - [x] Moteur physique et collisions
 - [x] Inventaire avec liste chaînée
 - [x] Gestionnaire d'entités
-- [x] Combat et hitboxes
+- [x] Attaque joueur et hitboxes
 - [x] PNJs et dialogues
 - [x] Cartes multiples
-- [ ] Tests mémoire et optimisations
+- [ ] Ennemis attaquent et poursuivent le joueur (W.I.P)
+- [ ] Système de vie pour entitées et joueur
+- [ ] Inclure infos d'ennemis dans les fichiers map pour differents ennemis a chaque map
+- [ ] Import map état propre, copie pour ecriture d'état actuel dessus pour garder en memoire etat de la salle
 
 ## Installation & Compilation
 
