@@ -6,7 +6,7 @@
 
 typedef enum {ENTITY_NPC, ENTITY_MONSTER, ENTITY_CHEST} EntityType;
 
-typedef enum {STATE_IDLE, STATE_WANDER, STATE_TALK} EntityState;
+typedef enum {STATE_IDLE, STATE_WANDER, STATE_TALK, STATE_ATTACK, STATE_TARGET} EntityState;
 
 typedef struct {
 

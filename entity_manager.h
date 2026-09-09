@@ -19,7 +19,7 @@ bool entity_manager_add(EntityManager* manager, Entity* entity);
 
 void entity_manager_remove_at(EntityManager* manager, int index);
 
-void entity_manager_update(EntityManager* manager, const Map* map, float dt);
+void entity_manager_update(EntityManager* manager, const Map* map, float dt, Player* player);
 
 void entity_manager_render(const EntityManager* manager);
 

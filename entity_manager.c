@@ -52,9 +52,9 @@ void entity_manager_remove_at(EntityManager* manager, int index) {
     manager->count--;
 }
 
-void entity_manager_update(EntityManager* manager, const Map* map, float dt) {
+void entity_manager_update(EntityManager* manager, const Map* map, float dt, Player* player) {
     if (manager == NULL || map == NULL) return;
-
+    
     for (int i = 0; i < manager->count; i++)  {
         if (manager->entities[i]->active) {
             switch (manager->entities[i]->type) {
@@ -101,7 +101,80 @@ void entity_manager_update(EntityManager* manager, const Map* map, float dt) {
                             break;
                     }
                     break; 
-                default:
+                case ENTITY_MONSTER:
+                    
+                    switch (manager->entities[i]->state) {
+
+                        case STATE_TALK: 
+                                break;
+
+                        case STATE_IDLE: 
+                            TraceLog(LOG_INFO, "Entered state_idle mob : %i", i);
+                            TraceLog(LOG_INFO, "%f mob %i", Vector2DistanceSqr(manager->entities[i]->position, player->position), i);
+                            manager->entities[i]->stateTimer -= dt;
+                            if (manager->entities[i]->stateTimer <= 0.0f) {
+                                manager->entities[i]->state = STATE_WANDER;
+                                TraceLog(LOG_INFO, "state from idle to wander");
+                                float max_shift = 0.5f; 
+                                float rand_x = ((float)rand() / (float)RAND_MAX) * (max_shift * 2.0f) - max_shift;
+                                float rand_y = ((float)rand() / (float)RAND_MAX) * (max_shift * 2.0f) - max_shift;
+                                Vector2 random_dir = {rand_x, rand_y};
+                                manager->entities[i]->moveDirection = random_dir;
+                                manager->entities[i]->stateTimer = 1.0f + (float)(rand() % 200) / 100.0f;
+                            }
+                            break;
+
+                        case STATE_WANDER:
+                        TraceLog(LOG_INFO, "%f mob %i", Vector2DistanceSqr(manager->entities[i]->position, player->position), i);
+                        TraceLog(LOG_INFO, "Entered state_wander mob %i", i);    
+                        if (Vector2DistanceSqr(manager->entities[i]->position, player->position) <= 40000.0) {
+                            manager->entities[i]->state = STATE_TARGET;
+
+                            TraceLog(LOG_INFO, "state from wander to target");
+                            break;
+                        }
+                            
+                            manager->entities[i]->stateTimer -= dt;
+
+                            Vector2 vel = Vector2Scale(
+                                manager->entities[i]->moveDirection,
+                                manager->entities[i]->speed * dt
+                            );
+
+                            manager->entities[i]->position = physics_move_and_slide(
+                                manager->entities[i]->position,
+                                manager->entities[i]->size,
+                                vel,
+                                map
+                            );
+
+                            if (manager->entities[i]->stateTimer <= 0.0f) {
+                                manager->entities[i]->state = STATE_IDLE;
+                                TraceLog(LOG_INFO, "state from wander to idle");
+                                manager->entities[i]->stateTimer = (float)(rand() % 3 + 1);
+                            }
+                            break;
+
+                        case STATE_TARGET:
+                            
+                                TraceLog(LOG_INFO, "%f", Vector2DistanceSqr(manager->entities[i]->position, player->position));
+                                TraceLog(LOG_INFO, "inside state_target");
+                                Vector2 monster2player = (Vector2){player->position.x - manager->entities[i]->position.x, player->position.y - manager->entities[i]->position.y};
+                                manager->entities[i]->moveDirection = Vector2Normalize(monster2player);
+                                Vector2 velo = Vector2Scale(manager->entities[i]->moveDirection,manager->entities[i]->speed * dt);
+                                manager->entities[i]->position = physics_move_and_slide(manager->entities[i]->position, manager->entities[i]->size, velo, map);
+
+                            if (Vector2DistanceSqr(manager->entities[i]->position, player->position)>= 40000.0) {
+                            manager->entities[i]->state = STATE_IDLE;
+                            TraceLog(LOG_INFO, "state from target to idle");
+                            }
+                        break;
+
+                        default:
+                        break;
+                    }
+                    break; 
+               default:
                     break;
             }
         }
@@ -132,7 +205,7 @@ void entity_manager_check_attack(EntityManager* manager, SlashHitBox attackBox, 
     if (manager == NULL) return;
 
     for (int i = 0; i < manager->count; i++) {
-        // On vérifie que l'entité est un monstre actif
+        
         if (manager->entities[i]->active && manager->entities[i]->type == ENTITY_MONSTER) {
             Rectangle entityBox = { 
                 manager->entities[i]->position.x, 
@@ -141,14 +214,14 @@ void entity_manager_check_attack(EntityManager* manager, SlashHitBox attackBox, 
                 manager->entities[i]->size.y 
             };
             
-            bool isHit = false;   // convention C : minuscule au début
+            bool isHit = false;
 int j = 0;
 
-// Parcourt les 3 boîtes de collision de l'attaque
+
         while (j < 3) {
             if (CheckCollisionRecs(attackBox.boxes[j], entityBox)) {
                 isHit = true;
-                break; // inutile de tester les 2 autres boîtes une fois touché
+                break; 
             }
             j++;
         }

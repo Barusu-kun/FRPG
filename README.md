@@ -42,8 +42,8 @@ Un RPG d'action 2D en C, développé de A à Z sans moteur de jeu, basé sur l'a
 - [x] Inventaire avec liste chaînée
 - [x] Gestionnaire d'entités
 - [x] Combat et hitboxes
-- [ ] PNJs et dialogues
-- [ ] Cartes multiples
+- [x] PNJs et dialogues
+- [x] Cartes multiples
 - [ ] Tests mémoire et optimisations
 
 ## Installation & Compilation

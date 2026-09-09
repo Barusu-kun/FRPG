@@ -103,7 +103,7 @@ void game_update(Game* game) {
         if (*(game->current_map_ID) != map_id_before) {
             
             TraceLog(LOG_INFO, "[TRACK TP] Detection active ! Position joueur avant changement de fichier : Pixels(%.1f, %.1f)", game->player->position.x, game->player->position.y);
-            // 1. DÉCHARGER IMPÉRATIVEMENT L'ANCIENNE MAP (Évite le freeze/leak)
+            // 1. DÉCHARGER MAP 
             if (game->map != NULL) {
                 map_destroy(game->map);
             }
@@ -114,7 +114,7 @@ void game_update(Game* game) {
             game->map = map_import(filepath);
             TraceLog(LOG_INFO, "[TRACK TP] Fichier charge. Nouvelle position (donnee par le fichier) : Pixels(%.1f, %.1f)", game->player->position.x, game->player->position.y);
 
-            // 3. SÉCURITÉ ANTI-BOUCLE : Décaler légèrement le joueur de 4-5 pixels 
+            // 3. Décaler le joueur de 4-5 pixels 
             TraceLog(LOG_INFO, "[TRACK TP] Direction actuelle du joueur : %d", game->player->direction);
             
             if (game->player->direction == DIR_RIGHT) game->player->position.x += 8.0f;
@@ -131,7 +131,7 @@ void game_update(Game* game) {
         }
     }
 
-    entity_manager_update(game->entities, game->map, game->dt);
+    entity_manager_update(game->entities, game->map, game->dt, game->player);
     if (game->player->attackTimer == game->player->attackDuration) {
         player_get_attack_box(game->player);
         entity_manager_check_attack(game->entities, player_get_attack_box(game->player), 10);
