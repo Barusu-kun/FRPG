@@ -1,6 +1,7 @@
 #ifndef ENTITY_H
 #define ENTITY_H
 
+#include "player.h"
 #include <raylib.h>
 #include <stdbool.h>
 
@@ -19,6 +20,7 @@ typedef struct {
     bool active;
     EntityState state;
     float stateTimer;
+    float timeout;
     Vector2 moveDirection;
     float speed;
     char dialogueText[256];
@@ -32,6 +34,9 @@ Entity* entity_create(int id, EntityType type, Vector2 position, Color color);
 void entity_render(const Entity* entity);
 
 void entity_destroy(Entity* entity);
+
+SlashHitBox entity_get_hitbox(const Entity* entity);
+
 
 
 

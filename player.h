@@ -20,11 +20,13 @@ typedef struct {
     float speed;
     float size;
     Color color;
+    int hp;
     Inventory* inventory;
     Direction direction;
     bool isAttacking;
     float attackTimer;
     float attackDuration;
+    Texture2D playertexture;
 } Player;
 
 typedef struct {

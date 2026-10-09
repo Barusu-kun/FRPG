@@ -19,7 +19,8 @@ Entity* entity_create(int id, EntityType type, Vector2 position, Color color) {
     entity->type = type;
     entity->position = position;
     entity->color = color;
-    entity->hp = 10;
+    entity->hp = 100;
+    entity->timeout = 0.0f;
     entity->size.x = 28.0f;
     entity->size.y = 28.0f;
     entity->active = true;
@@ -49,3 +50,14 @@ void entity_destroy(Entity* entity) {
     free(entity);
 }
 
+SlashHitBox entity_get_hitbox(const Entity* entity) {
+    SlashHitBox hitbox = { 0 };
+
+    hitbox.boxes[0] = (Rectangle){ entity->position.x- entity->size.x, entity->position.y - entity->size.y, entity->size.x * 3.0f, entity->size.y * 3.0f };
+    hitbox.boxes[1] = (Rectangle){ entity->position.x, entity->position.y, entity->size.x , entity->size.y };
+    hitbox.boxes[2] = (Rectangle){ 0.0f,0.0f,0.0f,0.0f};
+
+    
+
+    return hitbox;
+}

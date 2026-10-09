@@ -19,12 +19,14 @@ Player* player_create(float x, float y, float speed) {
     player->position.y = y;
     player->speed = speed;
     player->size = 28.0f;
+    player->hp = 100;
     player->color = BLUE;
     player->inventory = inventory_create(10);
     player->direction = DIR_DOWN;
     player->isAttacking = false;
     player->attackTimer = 0.0f;
     player->attackDuration = 0.2f;
+    player->playertexture = LoadTexture("./assets/Sprites/mc.png");
     if (player->inventory == NULL) {
         free(player);
         return NULL;
@@ -98,18 +100,61 @@ void player_update(Player* player, const Map* map, float dt, int* current_map_ID
 
 void player_render(const Player* player) {
     if (player == NULL) {
-        return; //handle the fkng exception
+        return;
     }
     
-    DrawRectangleV(player->position, (Vector2){ player->size, player->size }, player->color);
+    // 1. Dessiner le joueur
+
+    
+
+    Rectangle source_rec = { 0.0f, 0.0f, 16.0f, 16.0f };
+
+    switch (player->direction) {
+
+        case DIR_DOWN : source_rec.y = 64.0f;
+        DrawTextureRec(player->playertexture, source_rec, player->position, WHITE);
+        break;
+        case DIR_UP : source_rec.y = 16.0f;
+        DrawTextureRec(player->playertexture, source_rec, player->position, WHITE);
+        break;
+        case DIR_RIGHT : source_rec.y = 32.0f;
+        DrawTextureRec(player->playertexture, source_rec, player->position, WHITE);
+        break;
+        case DIR_LEFT : source_rec.y = 49.0f;
+        DrawTextureRec(player->playertexture, source_rec, player->position, WHITE);
+        break;
+    }
+    
+    
+
+    
+    const float bar_width = player->size-10;
+    const float bar_height = 5.0f;
+    Vector2 bar_pos = (Vector2){ player->position.x + 5.0f, player->position.y - 5.0f };
+
+    // 2. Fond rouge
+    DrawRectangleV(bar_pos, (Vector2){ bar_width, bar_height }, RED);
+
+    // 3. Portion verte
+    float hp_ratio = (float)player->hp / (float)100;
+
+    // Sécurité pour éviter les valeurs négatives ou > 1.0f
+    if (hp_ratio < 0.0f) hp_ratio = 0.0f;
+    if (hp_ratio > 1.0f) hp_ratio = 1.0f;
+
+    float green_size = hp_ratio * bar_width;
+    DrawRectangleV(bar_pos, (Vector2){ green_size, bar_height }, LIME);
+    
     
 }
+
 
 void player_destroy(Player* player) {
     if (player == NULL) {
         return;
     }
     inventory_destroy(player->inventory);
+    UnloadTexture(player->playertexture);
     free(player);
 }
 

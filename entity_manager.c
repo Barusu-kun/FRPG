@@ -109,6 +109,7 @@ void entity_manager_update(EntityManager* manager, const Map* map, float dt, Pla
                                 break;
 
                         case STATE_IDLE: 
+                        if (manager->entities[i]->timeout >0.0f) manager->entities[i]->timeout -= dt;
                             TraceLog(LOG_INFO, "Entered state_idle mob : %i", i);
                             TraceLog(LOG_INFO, "%f mob %i", Vector2DistanceSqr(manager->entities[i]->position, player->position), i);
                             manager->entities[i]->stateTimer -= dt;
@@ -125,6 +126,7 @@ void entity_manager_update(EntityManager* manager, const Map* map, float dt, Pla
                             break;
 
                         case STATE_WANDER:
+                        if (manager->entities[i]->timeout >0.0f) manager->entities[i]->timeout -= dt;
                         TraceLog(LOG_INFO, "%f mob %i", Vector2DistanceSqr(manager->entities[i]->position, player->position), i);
                         TraceLog(LOG_INFO, "Entered state_wander mob %i", i);    
                         if (Vector2DistanceSqr(manager->entities[i]->position, player->position) <= 40000.0) {
@@ -156,7 +158,7 @@ void entity_manager_update(EntityManager* manager, const Map* map, float dt, Pla
                             break;
 
                         case STATE_TARGET:
-                            
+                                if (manager->entities[i]->timeout >0.0f) manager->entities[i]->timeout -= dt;
                                 TraceLog(LOG_INFO, "%f", Vector2DistanceSqr(manager->entities[i]->position, player->position));
                                 TraceLog(LOG_INFO, "inside state_target");
                                 Vector2 monster2player = (Vector2){player->position.x - manager->entities[i]->position.x, player->position.y - manager->entities[i]->position.y};
@@ -168,6 +170,25 @@ void entity_manager_update(EntityManager* manager, const Map* map, float dt, Pla
                             manager->entities[i]->state = STATE_IDLE;
                             TraceLog(LOG_INFO, "state from target to idle");
                             }
+                            else if (Vector2DistanceSqr(manager->entities[i]->position, player->position) <= 5000.0) {
+
+                                manager->entities[i]->state = STATE_ATTACK;
+                            }
+                        break;
+
+                        case STATE_ATTACK:
+                        ;
+                        Rectangle player_hitbox = (Rectangle){player->position.x, player->position.y, player->size, player->size};
+
+                        if (manager->entities[i]->timeout <= 0.0f && CheckCollisionRecs(entity_get_hitbox(manager->entities[i]).boxes[0], player_hitbox)) {
+
+                            player->hp -= 10;
+
+                        }
+
+                        manager->entities[i]->timeout = 10.0f;
+                        manager->entities[i]->state = STATE_IDLE;
+
                         break;
 
                         default:
@@ -215,23 +236,22 @@ void entity_manager_check_attack(EntityManager* manager, SlashHitBox attackBox, 
             };
             
             bool isHit = false;
-int j = 0;
+            int j = 0;
 
-
-        while (j < 3) {
-            if (CheckCollisionRecs(attackBox.boxes[j], entityBox)) {
-                isHit = true;
-                break; 
+            while (j < 3) {
+                if (CheckCollisionRecs(attackBox.boxes[j], entityBox)) {
+                    isHit = true;
+                    break; 
+                }
+                j++;
             }
-            j++;
-        }
 
-        if (isHit) {
-            manager->entities[i]->hp -= damage;
-            if (manager->entities[i]->hp <= 0) {
-                manager->entities[i]->active = false;
+            if (isHit) {
+                manager->entities[i]->hp -= damage;
+                if (manager->entities[i]->hp <= 0) {
+                    manager->entities[i]->active = false;
+                }
             }
-        }
         }
     }
 }
