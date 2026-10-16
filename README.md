@@ -16,7 +16,7 @@ Un RPG d'action 2D en C, développé de A à Z sans moteur de jeu, basé sur l'a
 - **Graphisme & Entrées** : Raylib
 - **Compilation** : gcc / make
 
-## 📂 Structure du Projet
+## Structure du Projet
 
 ```
 .
@@ -48,6 +48,7 @@ Un RPG d'action 2D en C, développé de A à Z sans moteur de jeu, basé sur l'a
 - [x] Attaque joueur et hitboxes
 - [x] PNJs et dialogues
 - [x] Cartes multiples
+- [x] Chargement de texture du joueur
 - [ ] Ennemis attaquent et poursuivent le joueur (W.I.P)
 - [ ] Système de vie pour entitées et joueur
 - [ ] Inclure infos d'ennemis dans les fichiers map pour differents ennemis a chaque map
@@ -81,6 +82,6 @@ make re       # Recompiler
 
 Ce projet est sous licence **MIT**. Voir le fichier [LICENSE](LICENSE) pour plus de détails.
 
-## 👤 Auteur
+## Auteur
 
 El Aidaoui Sierra Adam

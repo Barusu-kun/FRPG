@@ -102,7 +102,6 @@ void game_update(Game* game) {
         // SI LA MAP A CHANGÉ PENDANT LA FRAME :
         if (*(game->current_map_ID) != map_id_before) {
             
-            TraceLog(LOG_INFO, "[TRACK TP] Detection active ! Position joueur avant changement de fichier : Pixels(%.1f, %.1f)", game->player->position.x, game->player->position.y);
             // 1. DÉCHARGER MAP 
             if (game->map != NULL) {
                 map_destroy(game->map);
@@ -112,22 +111,14 @@ void game_update(Game* game) {
             char filepath[256];
             snprintf(filepath, sizeof(filepath), "assets/map/%i.csv", *(game->current_map_ID));
             game->map = map_import(filepath);
-            TraceLog(LOG_INFO, "[TRACK TP] Fichier charge. Nouvelle position (donnee par le fichier) : Pixels(%.1f, %.1f)", game->player->position.x, game->player->position.y);
 
             // 3. Décaler le joueur de 4-5 pixels 
-            TraceLog(LOG_INFO, "[TRACK TP] Direction actuelle du joueur : %d", game->player->direction);
             
             if (game->player->direction == DIR_RIGHT) game->player->position.x += 8.0f;
             if (game->player->direction == DIR_LEFT)  game->player->position.x -= 8.0f;
             if (game->player->direction == DIR_UP)    game->player->position.y -= 8.0f;
             if (game->player->direction == DIR_DOWN)  game->player->position.y += 8.0f;
 
-            TraceLog(LOG_INFO, "[TRACK TP] Position finale apres securite anti-boucle : Pixels(%.1f, %.1f) -> Tuile(Col:%d, Row:%d)", 
-                     game->player->position.x, game->player->position.y,
-                     (int)floor(game->player->position.x / game->map->tileSize),
-                     (int)floor(game->player->position.y / game->map->tileSize));
-
-            TraceLog(LOG_INFO, "[GAME] Changement de carte effectue proprement vers : %s", filepath);
         }
     }
 
@@ -166,7 +157,7 @@ void game_render(const Game* game) {
 
     inventory_render_debug(game->player->inventory, 10, 50);
     dialogue_render(game->dialogue, 1920,1080);
-    DrawText(TextFormat("%i", game->FrameCount), 1050, 0, 10, DARKGRAY);
+    DrawText(TextFormat("%d", game->player->state), 1050, 0, 10, DARKGRAY);
 
     EndDrawing();
     

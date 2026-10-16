@@ -26,6 +26,7 @@ Player* player_create(float x, float y, float speed) {
     player->isAttacking = false;
     player->attackTimer = 0.0f;
     player->attackDuration = 0.2f;
+    player->state = IDLE;
     player->playertexture = LoadTexture("./assets/Sprites/mc.png");
     if (player->inventory == NULL) {
         free(player);
@@ -47,7 +48,7 @@ void player_update(Player* player, const Map* map, float dt, int* current_map_ID
 
     }
     
-    if (IsKeyPressed(KEY_SPACE) && !player->isAttacking) {
+    if (IsKeyDown(KEY_SPACE) && !player->isAttacking) {
         player->isAttacking = true;
         player->attackTimer = player->attackDuration;
         
@@ -57,24 +58,48 @@ void player_update(Player* player, const Map* map, float dt, int* current_map_ID
 
     Vector2 velocity = {0.0f, 0.0f};
 
+    bool isMoving = false;
+
     if (IsKeyDown(KEY_RIGHT)) {
         player->direction = DIR_RIGHT;
         velocity.x += player->speed * dt;
+        isMoving = true;
     }
     if (IsKeyDown(KEY_LEFT)) {
         player->direction = DIR_LEFT;
         velocity.x -= player->speed * dt;
+        isMoving = true;
     }
     if (IsKeyDown(KEY_UP)) {
         player->direction = DIR_UP;
         velocity.y -= player->speed * dt;
+        isMoving = true;
     }
     if (IsKeyDown(KEY_DOWN)) {
         player->direction = DIR_DOWN;
         velocity.y += player->speed * dt;
+        isMoving = true;
+    }
+
+
+    Player_State newState = IDLE;
+
+    if (player->isAttacking) {
+        newState = ATTACKING; 
+    } 
+    else if (isMoving) {
+        newState = RUNNING;
+    } 
+    else {
+        newState = IDLE;
     }
 
     
+    if (newState != player->state) {
+        player->state = newState;
+        
+    }
+
     
     player->position = physics_move_and_slide(player->position, size, velocity, map);
 

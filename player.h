@@ -14,6 +14,13 @@ typedef enum Direction {
     DIR_RIGHT
 } Direction;
 
+typedef enum PlayerState {
+    IDLE,
+    RUNNING,
+    HURT,
+    ATTACKING
+} Player_State;
+
 
 typedef struct {
     Vector2 position;
@@ -26,6 +33,7 @@ typedef struct {
     bool isAttacking;
     float attackTimer;
     float attackDuration;
+    Player_State state;
     Texture2D playertexture;
 } Player;
 
@@ -36,6 +44,8 @@ typedef struct {
 
 Player* player_create(float x, float y, float speed);
 
+
+
 void player_update(Player* player, const Map* map, float dt, int* current_map_ID);
 
 void player_render(const Player* player);
@@ -43,6 +53,7 @@ void player_render(const Player* player);
 void player_destroy(Player* player);
 
 SlashHitBox player_get_attack_box(const Player* player);
+
 
 
 
